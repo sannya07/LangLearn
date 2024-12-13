@@ -7,7 +7,7 @@ export const RevealLinks = () => {
       <FlipLink href="https://www.google.com/search?q=learn+spanish">Hello.</FlipLink>
       <FlipLink href="https://www.google.com/search?q=learn+french">Bonjour.</FlipLink>
       <FlipLink href="https://www.google.com/search?q=learn+italian">Ciao.</FlipLink>
-      <FlipLink href="https://www.google.com/search?q=learn+portuguese">Olá.</FlipLink>
+      <FlipLink href="https://www.google.com/search?q=learn+portuguese">Ola.</FlipLink>
       <FlipLink href="https://www.google.com/search?q=learn+hindi">Namaste.</FlipLink>
     </section>
   );
