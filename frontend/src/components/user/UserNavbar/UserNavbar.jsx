@@ -14,7 +14,7 @@ function UserNavbar() {
   };
 
   return (
-    <nav className="bg-blue-600 text-white">
+    <nav className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
         <Link to="/user/home" className="text-xl font-bold">

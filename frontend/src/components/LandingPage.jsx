@@ -12,17 +12,17 @@ const Navbar = () => {
 
         {/* Links for Desktop */}
         <div className="hidden md:flex gap-6">
-        <a href="/login" className="hover:text-purple-400 transition">
-            Login
+        <a href="/user/signup" className="hover:text-purple-400 transition">
+            User Signup
           </a>
-          <a href="/signup" className="hover:text-purple-400 transition">
-            Signup
+          <a href="/user/login" className="hover:text-purple-400 transition">
+            User Login
           </a>
-          <a href="#features" className="hover:text-purple-400 transition">
-            Features
+          <a href="/instructor/signup" className="hover:text-purple-400 transition">
+            Instructor Signup
           </a>
-          <a href="#about" className="hover:text-purple-400 transition">
-            About
+          <a href="/instructor/login" className="hover:text-purple-400 transition">
+            Instructor Login
           </a>
           <a href="#contact" className="hover:text-purple-400 transition">
             Contact

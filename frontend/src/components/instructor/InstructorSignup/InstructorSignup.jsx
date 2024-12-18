@@ -116,7 +116,7 @@ const InstructorSignup = () => {
 
         <button
           type="submit"
-          className="w-full p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
+          className="w-full p-2 bg-gray-900 text-white rounded-md hover:bg-blue-700 focus:outline-none"
         >
           Sign Up
         </button>

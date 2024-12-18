@@ -136,7 +136,7 @@ const UserSelectCourse = () => {
       {/* Submit Button */}
       <button
         onClick={handleSubmitSelection}
-        className="w-full max-w-md py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        className="w-full max-w-md py-2 bg-gray-900 text-white rounded-md hover:bg-blue-700"
       >
         Select Course
       </button>
