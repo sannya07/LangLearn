@@ -90,12 +90,11 @@ const LandingPage = () => {
           className="max-w-lg text-center md:text-left"
         >
           <h2 className="text-5xl font-extrabold text-purple-400 mb-6">
-            Unlock Your Language Potential
+            Unlock Your Learning Potential
           </h2>
           <p className="text-gray-300 mb-8 text-lg leading-relaxed ">
-            Learn languages the smart way with AI-powered lessons, interactive
-            games, and real-world practice. Progress at your pace and stay
-            motivated with gamified rewards.
+          Discover a smarter way to learn languages with Lang Learn – designed to help you master new languages at your own pace. 
+          Whether you're starting from scratch or aiming to refine your skills, this is the place.
           </p>
           {/* Updated Button */}
           <button className="relative z-0 rounded bg-purple-500 text-white px-10 py-3 transition-[all_0.3s_ease] after:absolute after:left-0 after:top-0 after:-z-10 after:h-full after:w-0 after:rounded after:bg-purple-800 after:transition-[all_0.3s_ease] hover:after:w-full font-medium">
@@ -112,18 +111,20 @@ const LandingPage = () => {
           Why Choose Us?
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <Feature
-            title="Interactive Lessons"
-            description="Engaging, hands-on activities to make language learning enjoyable."
-          />
-          <Feature
-            title="AI Assistance"
-            description="Personalized feedback and conversations tailored to your progress."
-          />
-          <Feature
-            title="Gamified Learning"
-            description="Stay motivated with rewards like badges, streaks, and milestones."
-          />
+        <Feature
+  title="Comprehensive Courses"
+  description="Access a wide range of language courses designed to take you from beginner to advanced levels."
+/>
+<Feature
+  title="Interactive Learning Tools"
+  description="Engage with quizzes, assignments, and multimedia content to enhance your understanding of the language."
+/>
+
+<Feature
+  title="Flexible Learning"
+  description="Learn at your own pace with self-paced courses, allowing you to balance study with your personal schedule."
+/>
+
         </div>
       </section>
 
@@ -137,7 +138,7 @@ const LandingPage = () => {
 </div>
 <div className="flex flex-col justify-center items-center  mx-auto w-1/2 my-7 p-7 ">
   <h1 className="text-center text-4xl font-extrabold text-purple-100 mt-9">
-    Want to be able to learn and speak multiple languages fluently as well?
+  Your Learning Journey Starts Here — Explore, Engage, Excel!
   </h1>
   <motion.div
     initial={{ x: 50, opacity: 0 }}
@@ -145,7 +146,7 @@ const LandingPage = () => {
     transition={{ duration: 0.8 }}
   >
     <img
-      src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExamNmeGc2YzJuZXc4MHdnYmVra3VhdzJ4eDBicnRsNmIwN3l2cm5pNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/vrcxO2t1CLV0k/giphy.gif"
+      src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDFuNWNuY2ZqeXRuaHBxYWV4MXdhMzFrYXJ4cTFzNXp0MGg5MzNnaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/umYMU8G2ixG5mJBDo5/giphy.gif"
       alt="Multiple Languages"
       className="rounded-lg pt-7 my-8 max-width: 100%"
     />
@@ -183,10 +184,7 @@ const LandingPage = () => {
           About LangLearn
         </motion.h3>
         <p className="text-gray-300 text-center max-w-4xl mx-auto text-lg leading-relaxed">
-          LangLearn is your ultimate partner for mastering new languages. Our
-          cutting-edge AI technology adapts to your learning style, making the
-          process both effective and enjoyable. With LangLearn, you’re not just
-          learning a language—you’re experiencing it.
+        Embark on your personalized learning journey with our LMS. Explore a wide range of courses, engage with expert instructors, and excel with hands-on practice and gamified learning experiences
         </p>
       </section>
 
@@ -198,10 +196,10 @@ const LandingPage = () => {
           transition={{ duration: 0.6 }}
           className="text-3xl font-bold text-purple-400 mb-8"
         >
-          Ready to Start Your Language Journey?
+          Ready to Start Your Learning Journey?
         </motion.h3>
         <p className="text-gray-300 text-lg mb-8">
-          Join thousands of learners and experience the future of language
+          Join thousands of learners and experience the future of 
           learning today!
         </p>
         {/* Updated Button */}
