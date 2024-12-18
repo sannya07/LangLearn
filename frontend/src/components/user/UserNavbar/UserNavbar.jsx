@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function UserNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
+
+  const logout = () => {
+    // Clear the JWT token from localStorage
+    localStorage.removeItem("token");
+
+    // Redirect to the login page after logout
+    navigate("/");
+  };
 
   return (
     <nav className="bg-blue-600 text-white">
@@ -26,9 +35,11 @@ function UserNavbar() {
           <Link to="/user/support" className="hover:underline">
             Support
           </Link>
-          <Link to="/user/logout" className="hover:underline">
+          <button
+            onClick={logout}
+            className="hover:underline cursor-pointer">
             Logout
-          </Link>
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -84,13 +95,15 @@ function UserNavbar() {
           >
             Support
           </Link>
-          <Link
-            to="/user/logout"
-            className="block px-4 py-2 hover:bg-blue-500"
-            onClick={() => setIsMenuOpen(false)}
+          <button
+            className="block px-4 py-2 hover:bg-blue-500 cursor-pointer"
+            onClick={() => {
+              setIsMenuOpen(false); // Close the mobile menu
+              logout(); // Call the logout function
+            }}
           >
             Logout
-          </Link>
+          </button>
         </div>
       )}
     </nav>
