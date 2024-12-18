@@ -10,6 +10,7 @@ import UserSignup from "./components/user/UserSignup/UserSignup";
 import InstructorSignup from "./components/instructor/InstructorSignup/InstructorSignup";
 import UserLogin from "./components/user/UserLogin/UserLogin";
 import InstructorLogin from "./components/instructor/InstructorLogin/InstructorLogin";
+import UserSelectCourse from "./components/user/UserSelectCourse/UserSelectCourse";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Route path="home" element={<UserHome/>} />
       <Route path="signup" element={<UserSignup/>} />
       <Route path="login" element={<UserLogin/>} />
+      <Route path="select-course" element={<UserSelectCourse/>} />
     </Route>
 
     {/* Nested Routes for Instructor */}
