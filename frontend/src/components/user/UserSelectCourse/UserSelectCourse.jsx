@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
+// List of courses (you can dynamically fetch this data from an API if needed)
 const courses = [
   {
     id: 1,
@@ -44,23 +47,71 @@ const courses = [
 ];
 
 const UserSelectCourse = () => {
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null); // Track the selected course
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  const navigate = useNavigate(); // Initialize navigate from React Router
 
-  const handleSelectCourse = (courseId) => {
+  // Handle course selection
+  const handleCourseSelection = (courseId) => {
     setSelectedCourse(courseId);
+    setError(''); // Clear any error when a course is selected
+    setSuccess(''); // Clear success message
   };
+
+  // Handle final course selection submission
+  const handleSubmitSelection = async () => {
+    if (!selectedCourse) {
+      setError('Please select a course first.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');  // Ensure you have the token saved in localStorage
+  
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_REACT_APP_API_BASE_URL}/user/select-course`, 
+        { courseId: selectedCourse }, 
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,  // Attach the JWT token here
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,  // This ensures cookies are sent if needed
+        }
+      );
+  
+      console.log('Course selected successfully:', response.data);
+      setSuccess('Course selected successfully!');
+      setError(''); // Clear any previous error message
+      
+      // Navigate to "/user/home" after successful course selection
+      navigate('/user/home');
+      
+    } catch (error) {
+      console.error('Error selecting course:', error);
+      setError('Error selecting course. Please try again.');
+      setSuccess(''); // Clear success message in case of error
+    }
+  };
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 py-12">
       <h2 className="text-3xl font-bold text-center mb-8">Select a Course</h2>
 
+      {/* Display error or success messages */}
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+      {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
+
       {/* Display Courses List */}
-      <div className="w-full max-w-4xl px-4">
+      <div className="w-full max-w-4xl px-4 mb-6">
         {courses.map((course) => (
           <div
             key={course.id}
-            className="bg-white p-6 rounded-lg shadow-lg mb-6 cursor-pointer hover:shadow-2xl transition-all"
-            onClick={() => handleSelectCourse(course.id)}
+            className={`bg-white p-6 rounded-lg shadow-lg mb-6 ${selectedCourse === course.id ? 'border-2 border-blue-500' : ''}`}
+            onClick={() => handleCourseSelection(course.id)}
           >
             <img
               src={course.imageUrl}
@@ -82,24 +133,13 @@ const UserSelectCourse = () => {
         ))}
       </div>
 
-      {/* If no course is selected */}
-      {!selectedCourse && (
-        <p className="text-gray-500 mt-4">Click on a course to see more details and select it.</p>
-      )}
-
-      {/* If a course is selected */}
-      {selectedCourse && (
-        <div className="bg-white p-8 rounded-lg shadow-md w-96 text-center mt-8">
-          <h3 className="text-2xl font-bold mb-4">{courses[selectedCourse - 1].title}</h3>
-          <p className="text-gray-600 mb-4">{courses[selectedCourse - 1].description}</p>
-          <button
-            onClick={() => alert('Course selected')}
-            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Select Course
-          </button>
-        </div>
-      )}
+      {/* Submit Button */}
+      <button
+        onClick={handleSubmitSelection}
+        className="w-full max-w-md py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+      >
+        Select Course
+      </button>
     </div>
   );
 };

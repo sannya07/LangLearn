@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json()); // Middleware to parse JSON requests
 
 // Connect to MongoDB
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   courses: { type: [String], default: [] }, // Array to store course IDs, initially empty
+  role: { type: String, default: 'user' }, // Default role as 'user'
 });
 
 userSchema.pre('save', async function (next) {
@@ -54,9 +55,24 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Middleware for role-based access control
+const authorizeInstructor = (req, res, next) => {
+  if (req.user.role !== 'instructor') {
+    return res.status(403).json({ message: 'Access denied: Instructor only' });
+  }
+  next();
+};
+
+const authorizeUser = (req, res, next) => {
+  if (req.user.role !== 'user') {
+    return res.status(403).json({ message: 'Access denied: User only' });
+  }
+  next();
+};
+
 // Routes
 
-// Signup route
+// Signup route for users (default role: user)
 app.post('/user/signup', async (req, res) => {
   const { name, username, email, password } = req.body;
 
@@ -71,14 +87,22 @@ app.post('/user/signup', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create and save user
-    const newUser = new User({ name, username, email, password });
+    // Create and save user with role as 'user'
+    const newUser = new User({ 
+      name, 
+      username, 
+      email, 
+      password,
+      role: 'user'  // Default role as 'user'
+    });
     await newUser.save();
 
-    // Generate JWT
-    const token = jwt.sign({ id: newUser._id, username: newUser.username }, JWT_SECRET, {
-      expiresIn: '1h', // Token expires in 1 hour
-    });
+    // Generate JWT token with role as 'user'
+    const token = jwt.sign({ 
+      id: newUser._id, 
+      username: newUser.username, 
+      role: newUser.role // Including role in JWT token
+    }, JWT_SECRET, { expiresIn: '1h' });
 
     res.status(201).json({ message: 'User created successfully', token });
   } catch (error) {
@@ -87,8 +111,47 @@ app.post('/user/signup', async (req, res) => {
   }
 });
 
+// Signup route for instructors (role: instructor)
+app.post('/instructor/signup', async (req, res) => {
+  const { name, username, email, password } = req.body;
+
+  if (!name || !username || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+
+  try {
+    // Check if instructor already exists
+    const existingInstructor = await User.findOne({ username });
+    if (existingInstructor) {
+      return res.status(400).json({ message: 'Instructor already exists' });
+    }
+
+    // Create and save instructor with role as 'instructor'
+    const newInstructor = new User({ 
+      name, 
+      username, 
+      email, 
+      password,
+      role: 'instructor'  // Explicit role as 'instructor'
+    });
+    await newInstructor.save();
+
+    // Generate JWT token with role as 'instructor'
+    const token = jwt.sign({ 
+      id: newInstructor._id, 
+      username: newInstructor.username, 
+      role: newInstructor.role // Including role in JWT token
+    }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(201).json({ message: 'Instructor created successfully', token });
+  } catch (error) {
+    console.error('Error creating instructor:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Login route
-app.post('/login', async (req, res) => {
+app.post('/user/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -96,33 +159,100 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    // Find user
+    // Find user by username
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
+    // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    // Generate JWT token
+    const token = jwt.sign({ 
+      id: user._id, 
+      username: user.username, 
+      role: user.role 
+    }, JWT_SECRET, { expiresIn: '1h' });
 
     res.json({ message: 'Login successful', token });
+
   } catch (error) {
     console.error('Error logging in:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Protected route
+// Protected route to test JWT authentication
 app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This is a protected route', user: req.user });
+});
+
+// Update user's selected course (PATCH request)
+app.put('/user/select-course', authenticateToken, async (req, res) => {
+  const { courseId } = req.body;  // Get the selected course ID from the request body
+
+  if (!courseId) {
+    return res.status(400).json({ message: 'Course ID is required' });
+  }
+
+  try {
+    // Find the user by the decoded token
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Replace the user's current course selection with the new one
+    user.courses = [courseId];  // Overwrite the courses array with the new selection
+
+    await user.save();  // Save the updated user document
+
+    res.status(200).json({ message: 'Course selected successfully' });
+  } catch (error) {
+    console.error('Error selecting course:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get user info and enrolled courses (protected route)
+app.get('/user/home', authenticateToken, async (req, res) => {
+  try {
+    // Find the user based on the ID in the token
+    const user = await User.findById(req.user.id).populate('courses');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Respond with the user's data and the courses they are enrolled in
+    res.json({
+      user: {
+        name: user.name,
+        username: user.username,
+        email: user.email,
+      },
+      courses: user.courses, // Assume 'courses' is populated with course info
+    });
+  } catch (error) {
+    console.error('Error fetching user home data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+
+// Example Instructor-only route (protected by role-based access control)
+app.get('/instructor/dashboard', authenticateToken, authorizeInstructor, (req, res) => {
+  res.json({ message: 'Welcome to the instructor dashboard' });
+});
+
+// Example User-only route (protected by role-based access control)
+app.get('/user/home', authenticateToken, authorizeUser, (req, res) => {
+  res.json({ message: 'Welcome to the user home page' });
 });
 
 // Start the server
