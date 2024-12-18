@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate to handle redirection
 
 function InstructorNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate(); // useNavigate hook to navigate programmatically
+
+  const logout = () => {
+    // Clear the JWT token from localStorage
+    localStorage.removeItem("token");
+
+    // Redirect to the login page after logout
+    navigate("/"); // Redirect to login or homepage
+  };
 
   return (
-    <nav className="bg-green-600 text-white">
+    <nav className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
         <Link to="/instructor/home" className="text-xl font-bold">
@@ -32,9 +41,13 @@ function InstructorNavbar() {
           <Link to="/instructor/support" className="hover:underline">
             Support
           </Link>
-          <Link to="/instructor/logout" className="hover:underline">
+          {/* Logout link */}
+          <button
+            className="hover:underline"
+            onClick={logout} // Call logout function when clicked
+          >
             Logout
-          </Link>
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -61,56 +74,59 @@ function InstructorNavbar() {
 
       {/* Mobile Links */}
       {isMenuOpen && (
-        <div className="md:hidden bg-green-700">
+        <div className="md:hidden bg-gray-900">
           <Link
             to="/instructor/home"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             to="/instructor/profile"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Profile
           </Link>
           <Link
             to="/instructor/courses"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Courses
           </Link>
           <Link
             to="/instructor/assignments"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Assignments
           </Link>
           <Link
             to="/instructor/reports"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Reports
           </Link>
           <Link
             to="/instructor/support"
-            className="block px-4 py-2 hover:bg-green-500"
+            className="block px-4 py-2 hover:bg-gray-900"
             onClick={() => setIsMenuOpen(false)}
           >
             Support
           </Link>
-          <Link
-            to="/instructor/logout"
-            className="block px-4 py-2 hover:bg-green-500"
-            onClick={() => setIsMenuOpen(false)}
+          {/* Logout button in mobile menu */}
+          <button
+            className="block px-4 py-2 hover:bg-gray-900 w-full text-left"
+            onClick={() => {
+              setIsMenuOpen(false); // Close the menu
+              logout(); // Call the logout function
+            }}
           >
             Logout
-          </Link>
+          </button>
         </div>
       )}
     </nav>

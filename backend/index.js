@@ -40,8 +40,28 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
-
 const User = mongoose.model('User', userSchema);
+
+// Instructor schema
+const instructorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  selfCourses: { type: [String], default: [] }, // Courses the instructor has created, initially empty
+  rating: { type: Number, default: 5 }, // Rating of the instructor, initially set to 5
+  role: { type: String, default: 'instructor' }, // Default role as 'instructor'
+}, { collection: 'instructors' }); // Specify the collection name
+
+// Hash the password before saving it
+instructorSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+const Instructor = mongoose.model('Instructor', instructorSchema);
+
 
 // Middleware for authenticating JWT
 const authenticateToken = (req, res, next) => {
@@ -111,44 +131,6 @@ app.post('/user/signup', async (req, res) => {
   }
 });
 
-// Signup route for instructors (role: instructor)
-app.post('/instructor/signup', async (req, res) => {
-  const { name, username, email, password } = req.body;
-
-  if (!name || !username || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required!' });
-  }
-
-  try {
-    // Check if instructor already exists
-    const existingInstructor = await User.findOne({ username });
-    if (existingInstructor) {
-      return res.status(400).json({ message: 'Instructor already exists' });
-    }
-
-    // Create and save instructor with role as 'instructor'
-    const newInstructor = new User({ 
-      name, 
-      username, 
-      email, 
-      password,
-      role: 'instructor'  // Explicit role as 'instructor'
-    });
-    await newInstructor.save();
-
-    // Generate JWT token with role as 'instructor'
-    const token = jwt.sign({ 
-      id: newInstructor._id, 
-      username: newInstructor.username, 
-      role: newInstructor.role // Including role in JWT token
-    }, JWT_SECRET, { expiresIn: '1h' });
-
-    res.status(201).json({ message: 'Instructor created successfully', token });
-  } catch (error) {
-    console.error('Error creating instructor:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
 
 // Login route
 app.post('/user/login', async (req, res) => {
@@ -242,11 +224,106 @@ app.get('/user/home', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/instructor/signup', async (req, res) => {
+  const { name, username, email, password } = req.body;
+
+  if (!name || !username || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+
+  try {
+    // Check if instructor already exists
+    const existingInstructor = await Instructor.findOne({ username });
+    if (existingInstructor) {
+      return res.status(400).json({ message: 'Instructor already exists' });
+    }
+
+    // Create and save instructor with role as 'instructor'
+    const newInstructor = new Instructor({ 
+      name, 
+      username, 
+      email, 
+      password,
+      selfCourses: [],  // Initially empty
+      rating: 5,        // Default rating is 5
+      role: 'instructor' // Explicitly setting role as 'instructor'
+    });
+    await newInstructor.save();
+
+    // Generate JWT token for the instructor
+    const token = jwt.sign({ 
+      id: newInstructor._id, 
+      username: newInstructor.username, 
+      role: newInstructor.role // Including role as 'instructor' in JWT payload
+    }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(201).json({ message: 'Instructor created successfully', token });
+  } catch (error) {
+    console.error('Error creating instructor:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Route to handle instructor login
+app.post('/instructor/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
+  try {
+    const instructor = await Instructor.findOne({ username });
+    if (!instructor) {
+      return res.status(400).json({ message: 'Instructor not found' });
+    }
+
+    const isMatch = await bcrypt.compare(password, instructor.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign(
+      { id: instructor._id, username: instructor.username, role: 'instructor' },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error logging in instructor:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Assuming you are using Express.js and have a middleware to authenticate the token
+app.get('/instructor/data', authenticateToken, async (req, res) => {
+  try {
+    const instructor = await Instructor.findById(req.user.id); // Assuming authenticateToken adds user info to req
+    if (!instructor) {
+      return res.status(404).json({ message: 'Instructor not found' });
+    }
+
+    res.json({
+      name: instructor.name,
+      username: instructor.username,
+      email: instructor.email,
+      selfCourses: instructor.selfCourses,
+      rating: instructor.rating,
+    });
+  } catch (error) {
+    console.error('Error fetching instructor data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 
 
 
 // Example Instructor-only route (protected by role-based access control)
-app.get('/instructor/dashboard', authenticateToken, authorizeInstructor, (req, res) => {
+app.get('/instructor/home', authenticateToken, authorizeInstructor, (req, res) => {
   res.json({ message: 'Welcome to the instructor dashboard' });
 });
 
