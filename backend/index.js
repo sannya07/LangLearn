@@ -3,12 +3,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const cors = require('cors'); // Import cors
 
 // Environment variables
-const { MONGODB_URI, JWT_SECRET, PORT } = process.env;
+const { MONGODB_URI, JWT_SECRET, PORT = 3000 } = process.env;
 
 // Initialize Express app
 const app = express();
+
+// Enable CORS for requests from the React frontend (running on localhost:5173)
+app.use(cors({
+  origin: 'http://localhost:5173',  // React app URL (adjust if needed)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true, // Allow cookies (optional)
+}));
+
 app.use(express.json()); // Middleware to parse JSON requests
 
 // Connect to MongoDB
@@ -18,8 +27,11 @@ mongoose.connect(MONGODB_URI)
 
 // User schema and model
 const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
   username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  courses: { type: [String], default: [] }, // Array to store course IDs, initially empty
 });
 
 userSchema.pre('save', async function (next) {
@@ -43,39 +55,68 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Routes
-// Register a new user
-app.post('/register', async (req, res) => {
+
+// Signup route
+app.post('/user/signup', async (req, res) => {
+  const { name, username, email, password } = req.body;
+
+  if (!name || !username || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required!' });
+  }
+
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ message: 'All fields are required' });
-
+    // Check if user already exists
     const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-    const user = new User({ username, password });
-    await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (err) {
-    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    // Create and save user
+    const newUser = new User({ name, username, email, password });
+    await newUser.save();
+
+    // Generate JWT
+    const token = jwt.sign({ id: newUser._id, username: newUser.username }, JWT_SECRET, {
+      expiresIn: '1h', // Token expires in 1 hour
+    });
+
+    res.status(201).json({ message: 'User created successfully', token });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Login
+// Login route
 app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
+
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ message: 'All fields are required' });
-
+    // Find user
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    // Generate JWT
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
