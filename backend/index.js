@@ -1,23 +1,18 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config(); 
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const cors = require('cors'); // Import cors
+const cors = require('cors'); 
 
-// Environment variables
 const { MONGODB_URI, JWT_SECRET, PORT = 3000 } = process.env;
-
-// Initialize Express app
 const app = express();
 
-// Enable CORS for requests from the React frontend (running on localhost:5173)
 app.use(cors({
-  origin: 'http://localhost:5173',  // React app URL (adjust if needed)
+  origin: 'http://localhost:5173',  
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true, // Allow cookies (optional)
+  credentials: true, 
 }));
-
 app.use(express.json()); // Middleware to parse JSON requests
 
 // Connect to MongoDB
@@ -61,6 +56,17 @@ instructorSchema.pre('save', async function (next) {
 });
 
 const Instructor = mongoose.model('Instructor', instructorSchema);
+// Course schema
+const courseSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  courseBy: { type: String, required: true }, // Instructor's name
+  price: { type: Number, required: true },
+  studentsEnrolled: { type: [String], default: [] }, // List of usernames
+}, { collection: 'courses' });
+
+const Course = mongoose.model('Course', courseSchema);
+
 
 
 // Middleware for authenticating JWT
@@ -224,6 +230,69 @@ app.get('/user/home', authenticateToken, async (req, res) => {
   }
 });
 
+// Route to fetch all courses
+app.get('/user/courses', authenticateToken, async (req, res) => {
+  try {
+    const courses = await Course.find({});
+    res.status(200).json({ courses });
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to enroll in a course
+app.post('/user/enroll', authenticateToken, async (req, res) => {
+  const { courseId } = req.body;
+
+  if (!courseId) {
+    return res.status(400).json({ message: 'Course ID is required' });
+  }
+
+  try {
+    // Find the course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    // Add the user's username to the studentsEnrolled array if not already present
+    const username = req.user.username;
+    if (course.studentsEnrolled.includes(username)) {
+      return res.status(400).json({ message: 'You are already enrolled in this course' });
+    }
+
+    course.studentsEnrolled.push(username);
+    await course.save();
+
+    res.status(200).json({ message: 'Successfully enrolled in the course' });
+  } catch (error) {
+    console.error('Error enrolling in course:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/instructor/data', authenticateToken, async (req, res) => {
+  try {
+    const instructor = await Instructor.findById(req.user.id); // Assuming authenticateToken adds user info to req
+    if (!instructor) {
+      return res.status(404).json({ message: 'Instructor not found' });
+    }
+
+    res.json({
+      name: instructor.name,
+      username: instructor.username,
+      email: instructor.email,
+      selfCourses: instructor.selfCourses,
+      rating: instructor.rating,
+    });
+  } catch (error) {
+    console.error('Error fetching instructor data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 app.post('/instructor/signup', async (req, res) => {
   const { name, username, email, password } = req.body;
 
@@ -314,6 +383,48 @@ app.get('/instructor/data', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching instructor data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to create a new course
+app.post('/instructor/create-course', authenticateToken, async (req, res) => {
+  const { title, description, price } = req.body;
+
+  // Check for missing fields
+  if (!title || !description || !price) {
+    return res.status(400).json({ message: 'Title, description, and price are required' });
+  }
+
+  try {
+    // Extract instructor information from JWT token
+    const instructorId = req.user.id;
+    const instructor = await Instructor.findById(instructorId);
+    
+    if (!instructor) {
+      return res.status(404).json({ message: 'Instructor not found' });
+    }
+
+    // Create a new course
+    const newCourse = new Course({
+      title,
+      description,
+      courseBy: instructor.name, // Automatically set the instructor's name from the JWT
+      price,
+      studentsEnrolled: [], // Initially, no students enrolled
+    });
+
+    // Save the course to the database
+    await newCourse.save();
+
+    // Optionally, add the new course to the instructor's selfCourses array
+    instructor.selfCourses.push(newCourse._id);
+    await instructor.save();
+
+    // Respond with success
+    res.status(201).json({ message: 'Course created successfully', course: newCourse });
+  } catch (error) {
+    console.error('Error creating course:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

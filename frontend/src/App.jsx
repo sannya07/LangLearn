@@ -11,6 +11,10 @@ import InstructorSignup from "./components/instructor/InstructorSignup/Instructo
 import UserLogin from "./components/user/UserLogin/UserLogin";
 import InstructorLogin from "./components/instructor/InstructorLogin/InstructorLogin";
 import UserSelectCourse from "./components/user/UserSelectCourse/UserSelectCourse";
+import InstructorCourses from "./components/instructor/InstructorCourses/InstructorCourses";
+import UserCourses from "./components/user/UserCourses/UserCourses";
+import UserProfile from "./components/user/UserProfile/UserProfile";
+import InstructorProfile from "./components/instructor/InstructorProfile/InstructorProfile";
 
 function App() {
   return (
@@ -24,6 +28,8 @@ function App() {
       <Route path="signup" element={<UserSignup/>} />
       <Route path="login" element={<UserLogin/>} />
       <Route path="select-course" element={<UserSelectCourse/>} />
+      <Route path="courses" element={<UserCourses/>} />
+      <Route path="profile" element={<UserProfile/>} />
     </Route>
 
     {/* Nested Routes for Instructor */}
@@ -31,6 +37,9 @@ function App() {
       <Route path="home" element={<InstructorHome/>} />
       <Route path="signup" element={<InstructorSignup/>} />
       <Route path="login" element={<InstructorLogin/>} />
+      <Route path="courses" element={<InstructorCourses/>} />
+      <Route path="profile" element={<InstructorProfile/>} />
+      
     </Route>
 
     {/* Catch-all Route for Undefined Pages */}

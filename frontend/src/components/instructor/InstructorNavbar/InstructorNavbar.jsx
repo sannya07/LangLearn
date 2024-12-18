@@ -15,7 +15,7 @@ function InstructorNavbar() {
 
   return (
     <nav className="bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div className="container mx-auto px-4 py-5 flex justify-between items-center">
         {/* Logo */}
         <Link to="/instructor/home" className="text-xl font-bold">
           Instructor Dashboard
