@@ -1,75 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import RevealLinks from "./languages";
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <nav className="w-full bg-black text-white py-4 shadow-lg fixed top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center px-6">
-        {/* Logo */}
-        <div className="text-3xl font-extrabold text-purple-500">LangLearn.</div>
-
-        {/* Links for Desktop */}
-        <div className="hidden md:flex gap-6">
-        <a href="/user/signup" className="hover:text-purple-400 transition">
-            User Signup
-          </a>
-          <a href="/user/login" className="hover:text-purple-400 transition">
-            User Login
-          </a>
-          <a href="/instructor/signup" className="hover:text-purple-400 transition">
-            Instructor Signup
-          </a>
-          <a href="/instructor/login" className="hover:text-purple-400 transition">
-            Instructor Login
-          </a>
-          <a href="#contact" className="hover:text-purple-400 transition">
-            Contact
-          </a>
-        </div>
-
-        {/* Hamburger Menu for Mobile */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          transition={{ duration: 0.1 }}
-          className="flex flex-col items-center bg-black text-white md:hidden"
-        >
-          <a href="#Signin" className="py-2 hover:text-purple-400">
-            Login
-          </a>
-          <a href="#features" className="py-2 hover:text-purple-400">
-            Features
-          </a>
-          <a href="#about" className="py-2 hover:text-purple-400">
-            About
-          </a>
-          <a href="#contact" className="py-2 hover:text-purple-400">
-            Contact
-          </a>
-        </motion.div>
-      )}
-    </nav>
-  );
-};
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 const LandingPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
-      {/* Navbar */}
-      <Navbar />
-
+      <Navbar/>
       {/* Hero Section */}
       <main className="flex flex-col md:flex-row items-center justify-center gap-12 px-8 pt-32 pb-20 bg-gradient-to-br from-purple-800 to-black">
       {/* <motion.div
@@ -210,23 +148,7 @@ const LandingPage = () => {
       </section>
         <hr/ >
       {/* Footer */}
-      <footer
-        id="contact"
-        className="w-full bg-black text-white text-center py-6"
-      >
-        <div className="container mx-auto">
-          <p>&copy; 2024 LangLearn. All rights reserved.</p>
-          <p>
-            Contact us at{" "}
-            <a
-              href="mailto:support@languagelearn.com"
-              className="underline text-purple-400 hover:text-purple-300"
-            >
-              support@languagelearn.com
-            </a>
-          </p>
-        </div>
-      </footer>
+      <Footer/>
     </div>
   );
 };

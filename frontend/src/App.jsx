@@ -15,13 +15,17 @@ import InstructorCourses from "./components/instructor/InstructorCourses/Instruc
 import UserCourses from "./components/user/UserCourses/UserCourses";
 import UserProfile from "./components/user/UserProfile/UserProfile";
 import InstructorProfile from "./components/instructor/InstructorProfile/InstructorProfile";
+import SignupButtons from "./components/SignUpButtons";
+import LoginButtons from "./components/LoginButtons";
 
 function App() {
   return (
     <Routes>
     {/* Main Route Setup */}
     <Route path="/" element={<LandingPage />} />  {/* Home Page */}
-    
+    <Route path="/signups" element={<SignupButtons />} />
+    <Route path="/logins" element={<LoginButtons />} />
+
     {/* Nested Routes for User */}
     <Route path="/user/" element={<UserLayout />}>
       <Route path="home" element={<UserHome/>} />

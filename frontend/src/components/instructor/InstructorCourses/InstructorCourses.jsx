@@ -1,50 +1,64 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function InstructorCourses() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [image, setImage] = useState(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
+
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+  };
 
   // Handle form submission to create a course
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/instructor/login');
+      navigate("/instructor/login");
       return;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_REACT_APP_API_BASE_URL}/instructor/create-course`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          price: parseFloat(price),
-        }),
-      });
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("price", parseFloat(price));
+      if (image) {
+        formData.append("image", image); // Append the image file
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_REACT_APP_API_BASE_URL}/instructor/create-course`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Authorization header for token
+          },
+          body: formData, // Use FormData to send the request
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         setSuccess(data.message);
-        setTitle('');
-        setDescription('');
-        setPrice('');
+        setTitle("");
+        setDescription("");
+        setPrice("");
+        setImage(null);
       } else {
-        setError(data.message || 'Failed to create course');
+        setError(data.message || "Failed to create course");
       }
     } catch (err) {
-      setError('An error occurred while creating the course');
+      setError("An error occurred while creating the course");
     }
   };
 
@@ -57,7 +71,11 @@ function InstructorCourses() {
       {error && <div className="text-red-600">{error}</div>}
 
       {/* Course Creation Form */}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-lg shadow-md"
+        encType="multipart/form-data"
+      >
         <div className="mb-4">
           <label htmlFor="title" className="block text-sm font-semibold text-gray-700">
             Title
@@ -99,6 +117,19 @@ function InstructorCourses() {
             className="mt-2 p-2 w-full border rounded-md"
             placeholder="Enter course price"
             required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="image" className="block text-sm font-semibold text-gray-700">
+            Course Image
+          </label>
+          <input
+            type="file"
+            id="image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="mt-2 p-2 w-full border rounded-md"
           />
         </div>
 
